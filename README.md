@@ -4,7 +4,7 @@
 
 Micro C Compiler is a simplified compiler project based on a small C-like programming language.
 
-The project is designed to demonstrate the major stages involved in compiler construction, starting from lexical analysis and progressing towards syntax analysis, semantic analysis, intermediate code generation and target code generation.
+The project is designed to demonstrate the major stages involved in compiler construction, starting from lexical analysis and progressing towards syntax analysis, semantic analysis, intermediate code generation and target code generatiion.
 
 ## Current Prototype
 
