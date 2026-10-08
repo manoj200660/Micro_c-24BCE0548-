@@ -3,9 +3,9 @@
 #include <ctype.h>
 #include <string.h>
 
-static const char *source = NULL;
-static size_t current = 0;
-static int current_line = 1;
+static const char *source;
+static size_t current;
+static int current_line;
 
 static Token make_token(TokenType type, const char *lexeme, size_t length)
 {
@@ -27,15 +27,7 @@ static Token make_token(TokenType type, const char *lexeme, size_t length)
 
 static Token error_token(const char *message)
 {
-    Token token;
-
-    token.type = TOKEN_ERROR;
-    token.line = current_line;
-
-    strncpy(token.lexeme, message, MAX_LEXEME_LENGTH - 1);
-    token.lexeme[MAX_LEXEME_LENGTH - 1] = '\0';
-
-    return token;
+    return make_token(TOKEN_ERROR, message, strlen(message));
 }
 
 static int is_at_end(void)
@@ -55,7 +47,7 @@ static char peek(void)
 
 static char peek_next(void)
 {
-    if (source == NULL || source[current] == '\0')
+    if (is_at_end())
     {
         return '\0';
     }
@@ -96,38 +88,39 @@ static Token identifier_or_keyword(void)
     }
 
     size_t length = current - start;
+    const char *word = source + start;
 
-    if (length == 3 && strncmp(source + start, "int", 3) == 0)
-        return make_token(TOKEN_INT, source + start, length);
+    if (length == 3 && strncmp(word, "int", 3) == 0)
+        return make_token(TOKEN_INT, word, length);
 
-    if (length == 6 && strncmp(source + start, "string", 6) == 0)
-        return make_token(TOKEN_STRING, source + start, length);
+    if (length == 6 && strncmp(word, "string", 6) == 0)
+        return make_token(TOKEN_STRING, word, length);
 
-    if (length == 4 && strncmp(source + start, "func", 4) == 0)
-        return make_token(TOKEN_FUNC, source + start, length);
+    if (length == 4 && strncmp(word, "func", 4) == 0)
+        return make_token(TOKEN_FUNC, word, length);
 
-    if (length == 2 && strncmp(source + start, "if", 2) == 0)
-        return make_token(TOKEN_IF, source + start, length);
+    if (length == 2 && strncmp(word, "if", 2) == 0)
+        return make_token(TOKEN_IF, word, length);
 
-    if (length == 4 && strncmp(source + start, "else", 4) == 0)
-        return make_token(TOKEN_ELSE, source + start, length);
+    if (length == 4 && strncmp(word, "else", 4) == 0)
+        return make_token(TOKEN_ELSE, word, length);
 
-    if (length == 5 && strncmp(source + start, "while", 5) == 0)
-        return make_token(TOKEN_WHILE, source + start, length);
+    if (length == 5 && strncmp(word, "while", 5) == 0)
+        return make_token(TOKEN_WHILE, word, length);
 
-    if (length == 3 && strncmp(source + start, "for", 3) == 0)
-        return make_token(TOKEN_FOR, source + start, length);
+    if (length == 3 && strncmp(word, "for", 3) == 0)
+        return make_token(TOKEN_FOR, word, length);
 
-    if (length == 6 && strncmp(source + start, "return", 6) == 0)
-        return make_token(TOKEN_RETURN, source + start, length);
+    if (length == 6 && strncmp(word, "return", 6) == 0)
+        return make_token(TOKEN_RETURN, word, length);
 
-    if (length == 5 && strncmp(source + start, "print", 5) == 0)
-        return make_token(TOKEN_PRINT, source + start, length);
+    if (length == 5 && strncmp(word, "print", 5) == 0)
+        return make_token(TOKEN_PRINT, word, length);
 
-    if (length == 4 && strncmp(source + start, "read", 4) == 0)
-        return make_token(TOKEN_READ, source + start, length);
+    if (length == 4 && strncmp(word, "read", 4) == 0)
+        return make_token(TOKEN_READ, word, length);
 
-    return make_token(TOKEN_IDENTIFIER, source + start, length);
+    return make_token(TOKEN_IDENTIFIER, word, length);
 }
 
 static Token number(void)
@@ -139,7 +132,9 @@ static Token number(void)
         advance_char();
     }
 
-    return make_token(TOKEN_INT_LITERAL, source + start, current - start);
+    return make_token(TOKEN_INT_LITERAL,
+                      source + start,
+                      current - start);
 }
 
 static Token string_literal(void)
@@ -165,7 +160,9 @@ static Token string_literal(void)
 
     advance_char();
 
-    return make_token(TOKEN_STRING_LITERAL, source + start, length);
+    return make_token(TOKEN_STRING_LITERAL,
+                      source + start,
+                      length);
 }
 
 void lexer_init(const char *input)

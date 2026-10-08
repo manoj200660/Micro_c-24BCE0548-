@@ -1,5 +1,7 @@
 #include "lexer.h"
-#include "token.h"
+#include "parser.h"
+#include "semantic.h"
+#include "tac.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,12 +12,14 @@ static char *read_file(const char *filename)
 
     if (file == NULL)
     {
-        perror("Error opening source file");
+        printf("Could not open source file.\n");
         return NULL;
     }
 
     fseek(file, 0, SEEK_END);
+
     long size = ftell(file);
+
     rewind(file);
 
     if (size < 0)
@@ -33,6 +37,7 @@ static char *read_file(const char *filename)
     }
 
     size_t bytes_read = fread(buffer, 1, (size_t)size, file);
+
     buffer[bytes_read] = '\0';
 
     fclose(file);
@@ -40,30 +45,19 @@ static char *read_file(const char *filename)
     return buffer;
 }
 
-int main(int argc, char *argv[])
+static void print_tokens(const char *source)
 {
-    if (argc != 2)
-    {
-        printf("Usage: %s <source-file>\n", argv[0]);
-        return 1;
-    }
+    Token token;
 
-    char *source_code = read_file(argv[1]);
+    lexer_init(source);
 
-    if (source_code == NULL)
-    {
-        return 1;
-    }
-
-    lexer_init(source_code);
-
-    printf("=== Micro C Compiler - Lexical Analysis ===\n\n");
+    printf("=== Lexical Analysis ===\n\n");
     printf("%-6s %-22s %s\n", "Line", "Token Type", "Lexeme");
     printf("------------------------------------------------------------\n");
 
     while (1)
     {
-        Token token = lexer_next_token();
+        token = lexer_next_token();
 
         printf("%-6d %-22s %s\n",
                token.line,
@@ -77,12 +71,78 @@ int main(int argc, char *argv[])
 
         if (token.type == TOKEN_ERROR)
         {
-            free(source_code);
-            return 1;
+            break;
         }
     }
 
-    free(source_code);
+    printf("\n");
+}
+
+int main(int argc, char *argv[])
+{
+    if (argc != 2)
+    {
+        printf("Usage: %s <source-file>\n", argv[0]);
+        return 1;
+    }
+
+    char *source = read_file(argv[1]);
+
+    if (source == NULL)
+    {
+        return 1;
+    }
+
+    printf("=== Micro C Compiler ===\n\n");
+
+    /* ---------------- Lexical Analysis ---------------- */
+
+    print_tokens(source);
+
+    /* Reset lexer before syntax analysis */
+    lexer_init(source);
+
+    /* ---------------- Syntax Analysis ---------------- */
+
+    if (parse_program())
+    {
+        printf("=== Syntax Analysis ===\n");
+        printf("Syntax Analysis: SUCCESS\n");
+        printf("Program syntax is valid.\n\n");
+    }
+    else
+    {
+        printf("=== Syntax Analysis ===\n");
+        printf("Syntax Analysis: FAILED\n");
+        printf("%s\n", parser_error());
+
+        free(source);
+        return 1;
+    }
+
+    /* ---------------- Semantic Analysis ---------------- */
+
+    if (semantic_analysis(source))
+    {
+        printf("=== Semantic Analysis ===\n");
+        printf("Semantic Analysis: SUCCESS\n");
+        printf("No semantic errors found.\n\n");
+    }
+    else
+    {
+        printf("=== Semantic Analysis ===\n");
+        printf("Semantic Analysis: FAILED\n");
+        printf("%s\n", semantic_error());
+
+        free(source);
+        return 1;
+    }
+
+    /* ---------------- Three Address Code ---------------- */
+
+    generate_tac(source);
+
+    free(source);
 
     return 0;
 }

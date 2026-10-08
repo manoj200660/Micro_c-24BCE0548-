@@ -3,15 +3,13 @@
 
 #define MAX_LEXEME_LENGTH 128
 
-typedef enum {
+typedef enum
+{
     TOKEN_EOF,
-
-    /* Identifiers and literals */
     TOKEN_IDENTIFIER,
     TOKEN_INT_LITERAL,
     TOKEN_STRING_LITERAL,
 
-    /* Keywords */
     TOKEN_INT,
     TOKEN_STRING,
     TOKEN_FUNC,
@@ -23,14 +21,12 @@ typedef enum {
     TOKEN_PRINT,
     TOKEN_READ,
 
-    /* Arithmetic operators */
     TOKEN_PLUS,
     TOKEN_MINUS,
     TOKEN_MULTIPLY,
     TOKEN_DIVIDE,
     TOKEN_MODULO,
 
-    /* Assignment and comparison */
     TOKEN_ASSIGN,
     TOKEN_EQUAL,
     TOKEN_NOT_EQUAL,
@@ -39,27 +35,25 @@ typedef enum {
     TOKEN_GREATER,
     TOKEN_GREATER_EQUAL,
 
-    /* Logical operators */
     TOKEN_AND,
     TOKEN_OR,
     TOKEN_NOT,
 
-    /* Delimiters */
     TOKEN_LEFT_PAREN,
     TOKEN_RIGHT_PAREN,
     TOKEN_LEFT_BRACE,
     TOKEN_RIGHT_BRACE,
     TOKEN_LEFT_BRACKET,
     TOKEN_RIGHT_BRACKET,
+
     TOKEN_SEMICOLON,
     TOKEN_COMMA,
 
-    /* Error */
     TOKEN_ERROR
-
 } TokenType;
 
-typedef struct {
+typedef struct
+{
     TokenType type;
     char lexeme[MAX_LEXEME_LENGTH];
     int line;
